@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Danceiny/Marxist/cli"
 	"github.com/Danceiny/Marxist/libcontainerd"
+	"github.com/Danceiny/Marxist/libcontainerd/cgroups/subsystem"
 	"github.com/sirupsen/logrus"
 	"os"
 )
@@ -22,9 +23,17 @@ func Start() {
 		if len(context.Args()) < 1 {
 			return fmt.Errorf("Missing container command")
 		}
-		cmd := context.Args().Get(0)
+		var cmdArr []string
+		for _, arg := range context.Args() {
+			cmdArr = append(cmdArr, arg)
+		}
 		tty := context.Bool("ti")
-		libcontainerd.Run(tty, cmd)
+		resConf := &subsystem.ResourceConfig{
+			MemLimit: context.String("m"),
+			CpuSet:   context.String("cpuset"),
+			CpuShare: context.String("cpushare"),
+		}
+		libcontainerd.Run(tty, cmdArr, resConf)
 		return nil
 	}
 	app.Commands = []cli.Command{
